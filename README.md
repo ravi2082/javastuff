@@ -3,5 +3,5 @@ Core Java stuff developed by me for automating debugging tasks, checking logic a
 Not all code is uploaded as some of it is prorietory that is using org specific libraries
 
 
-#practice 
+# practice 
 setting up copilot review
