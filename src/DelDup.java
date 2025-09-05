@@ -1,54 +1,49 @@
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
 
-public class DelDup
-{
+/**
+ * Utility class to remove duplicates from a text file.
+ * Reads from "list1.txt" and writes unique lines to "newlist1.txt".
+ */
+public class DelDup {
 
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args)
-	{
-		String str = "";
-		Set s = new HashSet();
-		try
-		{
-			BufferedReader reader =  new BufferedReader(new FileReader("list1.txt"));
-			BufferedWriter writer =  new BufferedWriter(new FileWriter("newlist1.txt"));
-			while((str=reader.readLine())!=null)
-			{
-				if(!s.contains(str))
-				{
-					s.add(str);
-				}
-				else
-				{
-					System.out.println(str);
-				}
-			}
-			System.out.println(s.size());
-			reader.close();
-			Iterator itr = s.iterator();
-			while(itr.hasNext())
-			{
-				writer.write((String)itr.next()+"\n");
-			}
-			writer.close();			
-			
-		}
-		catch (Exception e)
-		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
+    private static final String INPUT_FILE = "list1.txt";
+    private static final String OUTPUT_FILE = "newlist1.txt";
 
-	}
-
+    /**
+     * Main method to remove duplicates from file.
+     * @param args command line arguments (not used)
+     */
+    public static void main(String[] args) {
+        Set<String> uniqueLines = new HashSet<>();
+        
+        try (BufferedReader reader = new BufferedReader(new FileReader(INPUT_FILE));
+             BufferedWriter writer = new BufferedWriter(new FileWriter(OUTPUT_FILE))) {
+            
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (!uniqueLines.contains(line)) {
+                    uniqueLines.add(line);
+                } else {
+                    System.out.println("Duplicate found: " + line);
+                }
+            }
+            
+            System.out.println("Total unique lines: " + uniqueLines.size());
+            
+            // Write unique lines to output file
+            for (String uniqueLine : uniqueLines) {
+                writer.write(uniqueLine + "\n");
+            }
+            
+        } catch (IOException e) {
+            System.err.println("Error processing files: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
 }

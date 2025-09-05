@@ -1,64 +1,71 @@
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
 
-public class Divide100
-{
-	
+/**
+ * Utility class to find unique combinations of numbers from a given range
+ * that sum to 100 using exactly 11 numbers.
+ */
+public class Divide100 {
+    
+    private static final int[] RANGE = {6, 7, 8, 9, 10, 11, 12, 13, 14};
+    private static final int TARGET_SUM = 100;
+    private static final int NUMBERS_COUNT = 11;
+    private static final int MAX_ITERATIONS = 10_000_000;
 
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args)
-	{
-		int[] range = new int[]{6,7,8,9,10,11,12,13,14};
-		ArrayList a = new ArrayList();
-		ArrayList temp = new ArrayList();
-		HashSet set = new HashSet();
-		int sum = 0;
-		int count = 0;
-		String key = "";
-		for(int it=0;it<10000000;it++)
-		{
-			temp = new ArrayList();
-			loop:			
-			for(int i=0;i<11;i++)
-			{
-				int index = (int)(Math.random()*10);
-				
-				if(!(index>=0 && index<range.length))
-				{
-					if(i!=0)i--;
-					continue loop;
-				}
-				sum = sum + range[index];
-				temp.add(range[index]);
-				
-			}
-			if(sum==100)
-			{
-				
-				buildKey(temp,set);
-				count++;			
-			}
-			sum=0;
-		}
-		
-		System.out.println(set.size());
-		
-	}
+    /**
+     * Main method to find unique combinations that sum to 100.
+     * @param args command line arguments (not used)
+     */
+    public static void main(String[] args) {
+        Set<String> uniqueCombinations = new HashSet<>();
+        int validCombinations = 0;
+        
+        for (int iteration = 0; iteration < MAX_ITERATIONS; iteration++) {
+            List<Integer> combination = new ArrayList<>();
+            int sum = 0;
+            
+            // Generate a combination of 11 numbers
+            for (int i = 0; i < NUMBERS_COUNT; i++) {
+                int randomIndex = ThreadLocalRandom.current().nextInt(RANGE.length);
+                int selectedNumber = RANGE[randomIndex];
+                sum += selectedNumber;
+                combination.add(selectedNumber);
+            }
+            
+            if (sum == TARGET_SUM) {
+                String key = buildKey(combination);
+                if (uniqueCombinations.add(key)) {
+                    validCombinations++;
+                }
+            }
+        }
+        
+        System.out.println("Total unique combinations found: " + uniqueCombinations.size());
+        System.out.println("Total valid combinations generated: " + validCombinations);
+    }
 
-	private static void buildKey(ArrayList temp, HashSet set)
-	{
-		if(temp.size()!=11) return;
-		String key = "";
-		Collections.sort(temp);
-		for(int i=0;i<temp.size();i++)
-		{
-			key = key + "~" + temp.get(i);
-		}
-		set.add(key);
-		
-	}
-
+    /**
+     * Builds a sorted key string from the combination for uniqueness checking.
+     * @param combination the list of numbers in the combination
+     * @return a string key representing the sorted combination
+     */
+    private static String buildKey(List<Integer> combination) {
+        if (combination.size() != NUMBERS_COUNT) {
+            throw new IllegalArgumentException("Combination must contain exactly " + NUMBERS_COUNT + " numbers");
+        }
+        
+        List<Integer> sortedCombination = new ArrayList<>(combination);
+        Collections.sort(sortedCombination);
+        
+        StringBuilder keyBuilder = new StringBuilder();
+        for (Integer number : sortedCombination) {
+            keyBuilder.append("~").append(number);
+        }
+        
+        return keyBuilder.toString();
+    }
 }

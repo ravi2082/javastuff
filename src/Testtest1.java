@@ -22,9 +22,14 @@ public class Testtest1 extends TestAbstract implements TestInterface{
 		System.out.println("drawn");
 	}
 
+	@Override
 	public String putEscapeSequences(String str) {
-		// TODO Auto-generated method stub
-		return null;
+		if (str == null) {
+			return null;
+		}
+		
+		// Simple escape implementation - replace single quotes with double quotes
+		return str.replace("'", "''");
 	}
 
 	

@@ -20,9 +20,9 @@ public class ThreadPoolImplementor extends ThreadPoolExecutor
     private static long keepAliveTime = 100;    
     //Capacity of the Queue 
     private static final int CAPACITY=5;    
-    //Queue to store all requests based on. At any point there will 10 in the Queue.
-    //An extra 5 tasks will be in Processing.
-    private static final BlockingQueue queue = new LinkedBlockingQueue(CAPACITY);
+    //Queue to store all requests. At any point there will be CAPACITY tasks in the Queue.
+    //Additional tasks will be in processing.
+    private static final BlockingQueue<Runnable> queue = new LinkedBlockingQueue<>(CAPACITY);
     
     private final ThreadLocal<Long> startTime = new ThreadLocal<Long>();
     private final AtomicLong numTasks = new AtomicLong();
@@ -61,19 +61,19 @@ public class ThreadPoolImplementor extends ThreadPoolExecutor
     }
     
     /**
-     * This method takes a object of Callable. 
+     * This method takes an object of Callable. 
      * The task is submitted to the Queue and executed by the ThreadPoolExecutor
      * If the Queue is full it throws a RejectedExecutionException
      * The call method of the Callable implementation is executed by the Executor
-     * @param task
-     * @return
+     * @param task the task to be executed
+     * @return Future representing the task result, or null if rejected
      */    
-    public Future submit(Callable task)
-    {   try
-        {    return super.submit(task);
-        }
-        catch(RejectedExecutionException e)        
-        {    System.out.println("Rejected execution of a task since Queue is Full :: Queue Size :: "+ queue.size()+ " PoolSize :: "+this.getPoolSize());
+    public <T> Future<T> submit(Callable<T> task) {
+        try {
+            return super.submit(task);
+        } catch (RejectedExecutionException e) {
+            System.out.println("Rejected execution of a task since Queue is Full :: Queue Size :: " + 
+                             queue.size() + " PoolSize :: " + this.getPoolSize());
             //e.printStackTrace();            
         }
         return null;
@@ -115,30 +115,34 @@ public class ThreadPoolImplementor extends ThreadPoolExecutor
     
     /**
      * A sample class implementing Callable for tasks to be executed
-     *
      */
-    private class MyCallable implements Callable    
-    {    
+    private class MyCallable implements Callable<String> {    
         private String name = null;
-        /* (non-Javadoc)
-         * @see java.util.concurrent.Callable#call()
+        
+        /**
+         * Executes the callable task.
+         * @return the name of the thread that executed the task
+         * @throws Exception if an error occurs during execution
          */
-        public Object call() throws Exception
-        {//Write business logic. Call other implementations
-            if(name!=null)Thread.currentThread().setName(this.name);
-            log.info(Thread.currentThread().getName()+ " called.");
-            for(int i=0;i<5;i++)
-            {    System.out.println(Thread.currentThread().getName()+ " :: iteration :: "+i);
-                Thread.currentThread().sleep(1000);
+        @Override
+        public String call() throws Exception {
+            //Write business logic. Call other implementations
+            if (name != null) Thread.currentThread().setName(this.name);
+            log.info(Thread.currentThread().getName() + " called.");
+            
+            for (int i = 0; i < 5; i++) {
+                System.out.println(Thread.currentThread().getName() + " :: iteration :: " + i);
+                Thread.sleep(1000);
             }
             return Thread.currentThread().getName();
         }
         
         /**
-         * @param name
+         * Sets the name for this callable task.
+         * @param name the name to set
          */
-        public void setName(String name)
-        {    this.name=name;
+        public void setName(String name) {
+            this.name = name;
         }
     }
     
@@ -159,27 +163,21 @@ public class ThreadPoolImplementor extends ThreadPoolExecutor
          * This class implements Runnable to only simulate an environment
          * where a many threads concurrently hit a service
          */
-        public void run()
-        {
+        public void run() {
             ThreadPoolImplementor executor = ThreadPoolImplementor.getInstance();
             MyCallable task = executor.new MyCallable();
-            if(name!=null)task.setName(name);
-            Future ftask = executor.submit((Callable)task);
-            try
-            {    if(ftask!=null)
-                {    System.out.println(ftask.get().toString()+" completed");                
+            if (name != null) task.setName(name);
+            Future<String> ftask = executor.submit(task);
+            try {
+                if (ftask != null) {
+                    System.out.println(ftask.get() + " completed");                
+                } else {
+                    System.out.println(Thread.currentThread().getName() + " ---- rejected");                
                 }
-                else
-                {    System.out.println(Thread.currentThread().getName()+ " ---- rejected");                
-                }
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
             }
-            catch (InterruptedException e)
-            {    e.printStackTrace();
-            }
-            catch (ExecutionException e)
-            {    e.printStackTrace();
-            }
-        }    
+        }
     }
     
     /**
